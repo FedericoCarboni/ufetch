@@ -1,0 +1,62 @@
+import { ERR_OUT_OF_BOUNDS, MAX_CALL_STACK_POWER, MAX_CALL_STACK_SIZE, MAX_UINT_32 } from '../_inline.js';
+import { arraySlice, fromCharCode } from './intrinsics.js';
+
+/**
+ * @param {Array<number> | Uint8Array} bytes
+ * @returns {ByteString}
+ */
+export function fromArray(bytes) {
+  // This function makes a few of assumptions to optimize for speed:
+  //  - bytes is a valid Array of 0-255 numbers or NATIVE Uint8Array object
+
+  var length = bytes.length;
+  if (length > MAX_UINT_32) {
+    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_UINT_32 + ' (4GB)');
+  }
+
+  if (length <= MAX_CALL_STACK_SIZE) {
+    // Convert bytes to a string in a single batch, if bytes is an array it's
+    // fine to use apply, if it's a Uint8Array assume apply allows ArrayLike
+    // objects.
+    return fromCharCode.apply(undefined, /** @type {*} */ (bytes));
+  }
+
+  // Allocate a MAX_CALL_STACK_SIZE sized Array and fill it with the first
+  // values from bytes. This Array will be reused throughout this function to
+  // avoid costly allocations and garbage collections.
+  /** @type {number[]} */
+  var charCodes = arraySlice.call(bytes, 0, MAX_CALL_STACK_SIZE);
+  // Get the integer part of length / MAX_CALL_STACK_SIZE
+  var batches = length >> MAX_CALL_STACK_POWER;
+  // Get the remainder of length / MAX_CALL_STACK_SIZE
+  var charCodesLeft = length & (MAX_CALL_STACK_SIZE - 1);
+  // Decode the first batch of char codes to a string.
+  // In old IE it would be faster to allocate an Array and use .join() on it
+  // but Firefox, Chrome and IE11 are faster with +=.
+  /** @type {ByteString} */
+  var bs = fromCharCode.apply(undefined, charCodes);
+
+  // Process the bytes in batches
+  for (var batch = 1; batch < batches; batch++) {
+    var offset = batch << MAX_CALL_STACK_POWER;
+    for (var i = 0; i < MAX_CALL_STACK_SIZE; i++) {
+      //                   i + offset = i | offset
+      charCodes[i] = bytes[i | offset];
+    }
+    bs += fromCharCode.apply(undefined, charCodes);
+  }
+
+  // If there are odd chars left to decode
+  if (charCodesLeft) {
+    // resize charCodes to oddCharCodes
+    charCodes.length = charCodesLeft;
+    // loop from 0 to oddCharCodes
+    for (i = 0; i < charCodesLeft; i++) {
+      //                   i + offset = i | offset
+      charCodes[i] = bytes[i | offset];
+    }
+    bs += fromCharCode.apply(undefined, charCodes);
+  }
+
+  return bs;
+}
