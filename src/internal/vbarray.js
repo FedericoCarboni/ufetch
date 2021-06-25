@@ -6,17 +6,18 @@ import { isActiveX } from './util.js';
 
 if (isActiveX) {
   // VBARRAY_SCRIPT is replaced at build time with the contents of vbarray.vbs
+  // execScript is run only once so there is no need to alias it.
   execScript(VBARRAY_SCRIPT, 'VBScript');
 }
 
-var EVERY_CHAR = /[\s\S]/g;
+var _EVERY_CHAR = /[\s\S]/g;
 
 /**
  *
  * @param {string} s
  * @returns {string}
  */
-function splitU16(s) {
+function _splitU16(s) {
   var c = s.charCodeAt(0);
   return fromCharCode(c & 0xff, c >> 8);
 }
@@ -39,7 +40,7 @@ export function toByteString(vbarray) {
   // var rawBytes = IEBinaryToArray_ByteStr(binary);
   // var lastChr = IEBinaryToArray_ByteStr_Last(binary);
   // return rawBytes.replace(/[\s\S]/g,
-  //   function (match) { return byteMapping[match]; }) + lastChr;
+    // function (match) { return byteMapping[match]; }) + lastChr;
 
   var cstr = ufetch_VBArrayToString(vbarray);
   var lastChar = ufetch_VBArrayToStringLastChar(vbarray);
@@ -100,11 +101,11 @@ export function toByteString2(vbarray) {
 
 export function toByteString3(byteArray) {
   var scrambledStr = ufetch_VBArrayToString(byteArray);
-  var lastChr = ufetch_VBArrayToStringLastChar(byteArray),
-    result = "",
-    i = 0,
-    l = scrambledStr.length % 8,
-    thischar;
+  var lastChr = ufetch_VBArrayToStringLastChar(byteArray);
+    var result = '';
+    var i = 0;
+    var l = scrambledStr.length % 8;
+    var thischar;
   while (i < l) {
     thischar = scrambledStr.charCodeAt(i++);
     result += fromCharCode(thischar & 0xff, thischar >> 8);
@@ -119,7 +120,8 @@ export function toByteString3(byteArray) {
       (thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
       (thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
       (thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8,
-      (thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8);
+      (thischar = scrambledStr.charCodeAt(i++), thischar & 0xff), thischar >> 8
+    );
   }
   result += lastChr;
   return result;

@@ -90,7 +90,7 @@ ArrayBuffer.prototype.slice = function (start, end) {
     var newByteLength = MathMax(0, _end - _start);
     //  newSize = Math.floor(byteLength / 4) + (byteLength % 4 !== 0 ? 1 : 0)
     var newSize = (newByteLength >>> 2) + (newByteLength & 3 ? 1 : 0);
-    var newArrayBuffer = new ArrayBuffer(INTERNAL);
+    newArrayBuffer = new ArrayBuffer(INTERNAL);
     newArrayBuffer.byteLength = newByteLength;
     if (_start & 3) {
       newArrayBuffer._data = Array(newSize);
@@ -120,17 +120,17 @@ ArrayBuffer.prototype.slice = function (start, end) {
 
 /**
  * NOT IMPLEMENTE YET
- * @param {*} _
+ * @param _x {*}
  * @returns {_ is ArrayBuffer}
  */
-ArrayBuffer.isView = function (_) {
+ArrayBuffer.isView = function (_x) {
   return true; // TODO: fixme
 };
 
 /**
- * @param {ArrayBuffer} arrayBuffer
- * @param {number} index MUST be non-negative
- * @param {number} u8 MUST be between 0-255
+ * @param arrayBuffer {ArrayBuffer}
+ * @param index {number} MUST be non-negative
+ * @param u8 {number} MUST be between 0-255
  */
 export function setEmpty(arrayBuffer, index, u8) {
   //  idx = Math.floor(index / 4);
@@ -153,7 +153,7 @@ export function setEmpty(arrayBuffer, index, u8) {
       break;
   }
   arrayBuffer._data[idx] = u32;
-} 
+}
 
 /**
  * @param {ArrayBuffer} arrayBuffer

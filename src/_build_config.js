@@ -17,3 +17,5 @@ export var ENABLE_NO_CACHE = false;
 export var ENABLE_X_REQUESTED_WITH = true;
 export var ENABLE_BLOB_POLYFILL = true;
 export var ENABLE_BLOB_METHODS_POLYFILLS = true;
+
+export var ENABLE_NON_STANDARD = true;

@@ -2,7 +2,7 @@
  * UTf-8 decoding for `ByteString`s
  */
 
-import { UNICODE_REPLACEMENT, MAX_CALL_STACK_SIZE, MAX_UINT_32, ERR_OUT_OF_BOUNDS } from '../_inline.js';
+import { UNICODE_REPLACEMENT, MAX_CALL_STACK_SIZE, MAX_INT_32, ERR_OUT_OF_BOUNDS } from '../_inline.js';
 import { fromCharCode, Array } from './intrinsics.js';
 
 /**
@@ -14,9 +14,9 @@ import { fromCharCode, Array } from './intrinsics.js';
 export function decodeByteString(bs) {
   var length = bs.length;
 
-  // For practical limits ByteStrings cannot be more than 4GB
-  if (length > MAX_UINT_32) {
-    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_UINT_32 + ' (4GB)');
+  // For practical limits ByteStrings cannot be more than 2GB
+  if (length > MAX_INT_32) {
+    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_INT_32 + ' (2GB)');
   }
 
   var index = 0;
@@ -224,7 +224,7 @@ export function encodeByteString(s) {
     // Dump to result to avoid call stack size exceeded errors.
     if (charCodeN >= MAX_CALL_STACK_SIZE) {
       charCodes.length = charCodeN;
-      s += fromCharCode.apply(undefined, charCodes);
+      bs += fromCharCode.apply(undefined, charCodes);
       charCodeN = 0;
     }
   }

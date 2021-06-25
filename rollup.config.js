@@ -27,7 +27,9 @@ const terserPlugin = terser({
   },
   mangle: {
     safari10: true,
-    properties: /^\$/,
+    properties: {
+      regex: /^_/,
+    },
     // reserved: ['Headers', 'Request', 'Response'],
   },
   format: {
@@ -48,7 +50,7 @@ const config = [
         file: 'dist/ufetch.umd.js',
         format: 'umd',
         name: 'ufetch',
-        esModule: false
+        esModule: false,
       }
     ],
     plugins: [

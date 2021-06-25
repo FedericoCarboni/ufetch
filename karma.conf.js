@@ -52,6 +52,7 @@ function config(config) {
         // sourcemap: 'inline',
         sourcemap: false,
       },
+      treeshake: false,
     },
     plugins: [
       require('karma-mocha'),

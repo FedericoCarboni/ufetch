@@ -1,13 +1,16 @@
+import { Headers } from '../Headers.js';
 import { ENABLE_SERVER } from '../_build_config.js';
 import { HEADERS_STATE_NAME, HEADERS_STATE_VALUE } from '../_inline.js';
-import { isActiveX } from './util.js';
+import { internal, isActiveX } from './util.js';
 
 /**
  *
  * @param {ByteString} bs
  */
 export function parseHeaders(bs) {
+  internal._headersGuard = 'response';
   var headers = new Headers();
+  internal._headersGuard = 'none';
 
   if (bs === '') {
     return headers;

@@ -9,8 +9,7 @@ const config = {
   extends: [
     'eslint:recommended',
 
-    'plugin:es/no-2015', // Disallow ES2015
-    'plugin:es/no-5',
+    'plugin:es/restrict-to-es3',
 
     'plugin:import/errors',
     'plugin:import/warnings',
@@ -38,11 +37,21 @@ const config = {
     'no-eval': 'error',     // Ban eval()
     'no-new-func': 'error', // Ban Function()
 
+    // 'no-restricted-syntax': ['error', {
+    //   selector: 'BinaryExpression[operator="%"]',
+    //   message: 'Use bitwise operations instead of %'
+    // }],
+    'operator-linebreak': ['error'],
+    'no-unused-vars': ['error', {
+      varsIgnorePattern: '^_',
+      argsIgnorePattern: '^_'
+    }],
     'no-param-reassign': 'error',  // Parameters must not be reassigned
     // Must use single quotes, except for escaping '
     'quotes': ['warn', 'single', { avoidEscape: true }],
     // Anonymous functions must have a space function () {}, named functions
-    // mustn't have a space between the name of the function and the parent.
+    // mustn't have a space between the name of the function and the
+    // parenthesis.
     'space-before-function-paren': ['error', {
       anonymous: 'always',
       named: 'never',
@@ -57,10 +66,19 @@ const config = {
     // Parenthesis are required with the new operator new Class()
     'new-parens': 'error',
     // $ should not be used in variable, function, constructor names, but it is
-    // allowed as a single dollar sign to prefix non-standard/extension/internal
-    // properties or methods added to native objects or polyfills.
-    'id-match': ['error', '$?^[a-zA-Z0-9_]*$'],
-    'id-denylist': ['error', '_', '__', '$', 'exports', 'require', 'module', 'Module', 'eval'],
+    // allowed to prefix non-standard/extension properties or methods added to
+    // native objects or polyfills.
+    'id-match': ['error', '^\\$?\\$?[a-zA-Z0-9_]*$'],
+    'id-denylist': [
+      'error',
+      // Disallow poor quality names and identifiers that could be confused with
+      // other environments (i.e. Node.js).
+      '_', '__', '$',
+      'exports', 'Exports',
+      'require', 'Require',
+      'module', 'Module',
+      'eval', 'arguments',
+    ],
     'one-var': ['error', 'never'],
     'es/no-promise': 'off',
   },

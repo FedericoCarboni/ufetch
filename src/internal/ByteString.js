@@ -1,8 +1,8 @@
-import { ERR_OUT_OF_BOUNDS, MAX_CALL_STACK_POWER, MAX_CALL_STACK_SIZE, MAX_UINT_32 } from '../_inline.js';
+import { ERR_OUT_OF_BOUNDS, MAX_CALL_STACK_POWER, MAX_CALL_STACK_SIZE, MAX_INT_32 } from '../_inline.js';
 import { arraySlice, fromCharCode } from './intrinsics.js';
 
 /**
- * @param {Array<number> | Uint8Array} bytes
+ * @param bytes {Array<number> | Uint8Array}
  * @returns {ByteString}
  */
 export function fromArray(bytes) {
@@ -10,8 +10,8 @@ export function fromArray(bytes) {
   //  - bytes is a valid Array of 0-255 numbers or NATIVE Uint8Array object
 
   var length = bytes.length;
-  if (length > MAX_UINT_32) {
-    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_UINT_32 + ' (4GB)');
+  if (length > MAX_INT_32) {
+    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_INT_32 + ' (2GB)');
   }
 
   if (length <= MAX_CALL_STACK_SIZE) {
