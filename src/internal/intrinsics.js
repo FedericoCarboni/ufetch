@@ -1,5 +1,3 @@
-// @ts-ignore
-import { Promise } from '../../../promisu/dist/Promise.js';
 var _Array = Array;
 var _String = String;
 var _Blob = typeof Blob === 'function' && Blob;
@@ -9,8 +7,9 @@ var _Object = Object;
 var _Symbol = typeof Symbol === 'function' && Symbol;
 var _Infinity = 1 / 0;
 var _Math = Math;
-/** @type {typeof globalThis.Promise} */ // @ts-ignore
-var _Promise = Promise;
+var _encodeURIComponent = encodeURIComponent;
+var _decodeURIComponent = decodeURIComponent;
+var _parseInt = parseInt;
 export var SymbolIterator = _Symbol && _Symbol.iterator;
 export var objectToString = _Object.prototype.toString;
 export var has = _Object.prototype.hasOwnProperty;
@@ -20,6 +19,7 @@ export var MathFloor = _Math.floor;
 export var MathAbs = _Math.abs;
 export var MathMax = _Math.max;
 export var MathMin = _Math.min;
+export var MathPow = _Math.pow;
 export {
   _Array as Array,
   _String as String,
@@ -29,5 +29,7 @@ export {
   _Infinity as Infinity,
   _Symbol as Symbol,
   _Math as Math,
-  _Promise as Promise,
+  _encodeURIComponent as encodeURIComponent,
+  _decodeURIComponent as decodeURIComponent,
+  _parseInt as parseInt,
 };

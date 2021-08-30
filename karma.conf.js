@@ -41,16 +41,16 @@ function config(config) {
           delimiters: ['', ''],
           preventAssignment: true,
         }),
-        {
-          name: 'ufetch',
-          transform,
-        },
+        // {
+        //   name: 'ufetch',
+        //   transform,
+        // },
       ],
       output: {
         format: 'iife',
         name: 'ufetchTest',
-        // sourcemap: 'inline',
-        sourcemap: false,
+        sourcemap: 'inline',
+        // sourcemap: false,
       },
       treeshake: false,
     },

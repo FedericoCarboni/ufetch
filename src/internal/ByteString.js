@@ -8,10 +8,12 @@ import { arraySlice, fromCharCode } from './intrinsics.js';
 export function fromArray(bytes) {
   // This function makes a few of assumptions to optimize for speed:
   //  - bytes is a valid Array of 0-255 numbers or NATIVE Uint8Array object
+  //  - bytes size is less than 2GiB
+  //  - Function.apply supports ArrayLike objects or bytes is a proper Array
 
   var length = bytes.length;
   if (length > MAX_INT_32) {
-    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_INT_32 + ' (2GB)');
+    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_INT_32 + ' (2GiB)');
   }
 
   if (length <= MAX_CALL_STACK_SIZE) {
@@ -46,11 +48,11 @@ export function fromArray(bytes) {
     bs += fromCharCode.apply(undefined, charCodes);
   }
 
-  // If there are odd chars left to decode
+  // If there are char codes left to decode
   if (charCodesLeft) {
-    // resize charCodes to oddCharCodes
+    // resize charCodes to charCodesLeft
     charCodes.length = charCodesLeft;
-    // loop from 0 to oddCharCodes
+    // loop from 0 to charCodesLeft
     for (i = 0; i < charCodesLeft; i++) {
       //                   i + offset = i | offset
       charCodes[i] = bytes[i | offset];

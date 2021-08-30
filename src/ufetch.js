@@ -5,14 +5,20 @@ import {
   ENABLE_TEXTONLY,
   ENABLE_X_REQUESTED_WITH,
 } from './_build_config.js';
-import { BODY_BLOB, BODY_BYTESTRING, BODY_UTF8, ERR_FAILED_TO_FETCH, XHR_DONE } from './_inline.js';
+import {
+  BODY_ARRAY_BUFFER,
+  BODY_BLOB,
+  BODY_BYTESTRING,
+  BODY_UTF8,
+  ERR_FAILED_TO_FETCH,
+  XHR_DONE,
+} from './_inline.js';
 import { parseHeaders, setRequestHeader } from './internal/headers.js';
+import { toByteString } from './internal/vbarray.js';
 import { XMLHttpRequest } from './internal/xhr.js';
 import { internal } from './internal/util.js';
-import { Request } from './Request.js';
 import { Response } from './Response.js';
-import { toByteString } from './internal/vbarray.js';
-import { Promise } from './internal/intrinsics.js';
+import { Request } from './Request.js';
 
 /**
  * Remove circular references from xhr, prevents memory leaks in IE.
@@ -36,34 +42,48 @@ export function fetch(input, init) {
   return new Promise(function (resolve, reject) {
     var request = new Request(input, init);
     var xhr = new XMLHttpRequest();
+
     xhr.onreadystatechange = function () {
-      console.log(xhr);
-      switch (xhr.readyState) {
-        case XHR_DONE:
-          var status = xhr.status;
-          if (status === 0) {
-            reject(new TypeError(ERR_FAILED_TO_FETCH));
-          } else {
-            var response = new Response(!ENABLE_ACTIVE_X || 'responseType' in xhr
-              ? (internal._bodyKind = ENABLE_TEXTONLY ? BODY_UTF8 : BODY_BLOB,
-                 ENABLE_TEXTONLY ? xhr.responseText : xhr.response)
-              : (internal._bodyKind = BODY_BYTESTRING,
-                 toByteString(/** @type {*} */ (xhr).responseBody)), {
-              headers: parseHeaders(xhr.getAllResponseHeaders()),
-              status: status,
-              statusText: xhr.statusText
-            });
-            internal._bodyKind = -1;
-            resolve(response);
-          }
-          cleanup(xhr), xhr = null;
-          break;
-        default: // We shouldn't get here
+      if (xhr.readyState !== XHR_DONE) return;
+      var status = xhr.status;
+      if (status === 0) {
+        reject(new TypeError(ERR_FAILED_TO_FETCH));
+      } else {
+        var headers = /*@__NOINLINE__*/
+          parseHeaders(xhr.getAllResponseHeaders());
+        internal._responseURL = 'responseURL' in xhr
+          ? xhr.responseURL
+          : headers.get('X-Request-URL');
+        var responseBody = !ENABLE_ACTIVE_X || 'responseType' in xhr
+          ? (internal._bodyKind = ENABLE_TEXTONLY ? BODY_UTF8 : BODY_BLOB,
+            ENABLE_TEXTONLY ? xhr.responseText : xhr.response)
+          : (internal._bodyKind = BODY_BYTESTRING,
+            ENABLE_ACTIVE_X && 'responseBody' in xhr
+              ? /*@__NOINLINE__*/ toByteString(
+                /** @type {import('./internal/xhr').XMLHttpRequest} */
+                (xhr).responseBody)
+              : xhr.responseText);
+        var response = new Response(responseBody, {
+          headers: headers,
+          status: status,
+          statusText: xhr.statusText
+        });
+        internal._bodyKind = -1;
+        resolve(response);
+      }
+      // IE has issues with GC
+      if (ENABLE_ACTIVE_X) {
+        cleanup(xhr);
+        xhr = undefined;
       }
     };
     function onerror() {
       reject(new TypeError(ERR_FAILED_TO_FETCH));
-      cleanup(xhr), xhr = null;
+      // IE has issues with GC
+      if (ENABLE_ACTIVE_X) {
+        cleanup(xhr);
+        xhr = undefined;
+      }
     }
     if (!ENABLE_ACTIVE_X || 'onerror' in xhr)
       xhr.onerror = onerror;
@@ -115,20 +135,32 @@ export function fetch(input, init) {
       (xhr).setRequestHeader('Accept-Charset', 'x-user-defined');
     }
 
-    //
     if (ENABLE_TEXTONLY && ENABLE_ACCEPT_CHARSET_UTF_8)
       xhr.setRequestHeader('Accept-Charset', 'UTF-8');
 
-    //
+    // The X-Requested-With header is an old convention that was used before
+    // CORS.
     if (ENABLE_X_REQUESTED_WITH)
       xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
-    //
+    // Add all request headers to the XMLHttpRequest instance.
     request.headers.forEach(setRequestHeader, xhr);
-    xhr.send();
+
+    switch (request._kind) {
+      case -1:
+        xhr.send();
+        break;
+      case BODY_BLOB:
+      case BODY_ARRAY_BUFFER:
+      case BODY_UTF8:
+        xhr.send(request._body);
+        break;
+      case BODY_BYTESTRING:
+      default:
+        throw new TypeError('Cannot send binary Request body, not supported');
+    }
   });
 }
 
-export { Request };
-export { Response } from './Response.js';
+export { Request, Response };
 export { Headers } from './Headers.js';

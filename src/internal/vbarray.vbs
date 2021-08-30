@@ -1,12 +1,12 @@
-Function ufetch_VBArrayToString(Bytes)
-  ufetch_VBArrayToString = CStr(Bytes)
+Function ufetch_vbs_0(B)
+  ufetch_vbs_0 = CStr(B)
 End Function
-Function ufetch_VBArrayToStringLastChar(Bytes)
-  Dim LastIndex
-  LastIndex = LenB(Bytes)
-  If LastIndex Mod 2 Then
-    ufetch_VBArrayToStringLastChar = Chr(AscB(MidB(Bytes, LastIndex, 1)))
+Function ufetch_vbs_1(B)
+  Dim L
+  L = LenB(B)
+  If L Mod 2 Then
+    ufetch_vbs_1 = Chr(AscB(MidB(B, L, 1)))
   Else
-    ufetch_VBArrayToStringLastChar = ""
+    ufetch_vbs_1 = ""
   End If
 End Function

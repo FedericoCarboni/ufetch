@@ -1,140 +1,119 @@
 /// <reference lib="webworker"/>
 
 import { ENABLE_TEXTONLY } from '../_build_config.js';
-import { BODY_ARRAY_BUFFER, BODY_BLOB, BODY_BYTESTRING, BODY_UTF8, ERR_BINARY_NOT_SUPPORTED, ERR_BODY_USED } from '../_inline.js';
+import {
+  BODY_ARRAY_BUFFER,
+  BODY_BLOB,
+  BODY_BYTESTRING,
+  BODY_UTF8,
+  ERR_BINARY_NOT_SUPPORTED,
+  ERR_BODY_USED,
+} from '../_inline.js';
+import { utf8decode, utf8encode } from './utf8.js';
 import { fromArray } from './ByteString.js';
-import { Promise } from './intrinsics.js';
-import { decodeByteString, encodeByteString } from './utf8.js';
 import { resolved } from './util.js';
 
 var _FileReader = typeof FileReader === 'function' && FileReader;
 var _FileReaderSync = typeof FileReaderSync === 'function' && FileReaderSync;
 
 /**
- * @typedef Body
+ * @typedef Body Body mixin
+ * @property body     {null}
  * @property bodyUsed {boolean}
- * @property _kind {number}
- * @property _blob {Blob}
- * @property _arrayBuffer {ArrayBuffer}
- * @property _bs {ByteString}
- * @property _utf8 {string}
+ * @property _kind    {number}
+ * @property _body    {Blob | ArrayBuffer | ByteString | string}
  */
-
-/**
- *
- * @param body {Body}
- * @param bodyInit {BodyInit}
- * @param kind {number}
- */
-export function extractBody(body, bodyInit, kind) {
-  switch (body._kind = kind) {
-    case -1:
-      throw new TypeError('Not implemented'); // TODO
-    case BODY_BLOB:
-      body._blob = /** @type {Blob} */ (bodyInit);
-      return /** @type {Blob} */ (bodyInit).type;
-    case BODY_ARRAY_BUFFER:
-      body._arrayBuffer = /** @type {*} */ (bodyInit);
-      return null;
-    case BODY_BYTESTRING:
-      body._bs = /** @type {ByteString} */ (bodyInit);
-      return null;
-    case BODY_UTF8:
-      body._utf8 = /** @type {string} */ (bodyInit);
-      return 'text/plain;charset=UTF-8';
-    default:
-  }
-}
 
 /**
  * @this {Body}
- * @function
+ * @returns {Promise<string>}
  */
 export function text() {
   var body = this;
   if (body.bodyUsed)
     return Promise.reject(new TypeError(ERR_BODY_USED));
   body.bodyUsed = true;
+  var bodyInit = body._body;
+  body._body = undefined;
   switch (body._kind) {
-    case 0:
-      var blob = body._blob;
-      body._blob = undefined;
-      return readAsText(blob);
-    case 1:
+    case BODY_BLOB:
+      return readAsText(/** @type {*} */ (bodyInit));
+    case BODY_ARRAY_BUFFER:
       return null; // TODO
-    case 2:
-      var bs = body._bs;
-      body._bs = undefined;
+    case BODY_BYTESTRING:
       return resolved.then(function () {
-        return decodeByteString(bs);
+        return utf8decode(/** @type {*} */ (bodyInit));
       });
-    case 3:
-      var utf8 = body._utf8;
-      body._utf8 = undefined;
-      return Promise.resolve(utf8);
+    case BODY_UTF8:
+      return Promise.resolve(/** @type {*} */ (bodyInit));
     default:
   }
 }
 
 /**
  * @this {Body}
+ * @returns {Promise<ArrayBuffer>}
  */
 export function arrayBuffer() {
+  var body = this;
   if (ENABLE_TEXTONLY) throw new TypeError(ERR_BINARY_NOT_SUPPORTED);
   if (body.bodyUsed)
     return Promise.reject(new TypeError(ERR_BODY_USED));
   body.bodyUsed = true;
-  var body = this;
+  var bodyInit = body._body;
+  body._body = undefined;
   switch (body._kind) {
-    case 0:
-      var blob = body._blob;
-      body._blob = undefined;
-      return readAsArrayBuffer(blob);
-    case 1:
-      return null; // TODO
-    case 2:
-      return null; // TODO
-    case 3:
+    case BODY_BLOB:
+      return readAsArrayBuffer(/** @type {*} */ (bodyInit));
+    case BODY_ARRAY_BUFFER:
+      return Promise.resolve(/** @type {*} */ (bodyInit));
+    case BODY_BYTESTRING:
+      // var bs = body._bs;
+      // body._bs = undefined;
+      // return resolved.then(function () {
+      //   var arrayBuffer = new SlowArrayBuffer(bs.length);
+      //   fillFromByteString(arrayBuffer, bs);
+      //   return arrayBuffer;
+      // });
+    // eslint-disable-next-line no-fallthrough
+    case BODY_UTF8:
       return null; // TODO
     default:
   }
 }
 
 /**
+ * Non-standard Body method, disabled by default; it has a $$ prefix so that it
+ * will never be implemented in a standard specification.
  * @this {Body}
  * @returns {Promise<ByteString>}
  */
-export function $$byteString() {
-  if (ENABLE_TEXTONLY) throw new TypeError(ERR_BINARY_NOT_SUPPORTED);
+export function $$binaryString() {
   var body = this;
+  if (ENABLE_TEXTONLY) throw new TypeError(ERR_BINARY_NOT_SUPPORTED);
   if (body.bodyUsed)
     return Promise.reject(new TypeError(ERR_BODY_USED));
   body.bodyUsed = true;
+  var bodyInit = body._body;
+  body._body = undefined;
   switch (body._kind) {
-    case 0:
-      var blob = body._blob;
-      body._blob = undefined;
-      return readAsArrayBuffer(blob).then(function (arrayBuffer) {
-        // eslint-disable-next-line es/no-typed-arrays
-        return fromArray(new Uint8Array(arrayBuffer));
-      });
-    case 1:
-      var arrayBuffer = body._arrayBuffer;
-      body._arrayBuffer = undefined;
+    case BODY_BLOB:
+      return readAsArrayBuffer(/** @type {*} */ (bodyInit))
+        .then(function (arrayBuffer) {
+          // eslint-disable-next-line es/no-typed-arrays
+          return fromArray(new Uint8Array(arrayBuffer));
+        });
+    case BODY_ARRAY_BUFFER:
       return resolved.then(function () {
         // eslint-disable-next-line es/no-typed-arrays
-        var bs = fromArray(new Uint8Array(arrayBuffer)); // TODO
+        var bs = fromArray(new Uint8Array(/** @type {*} */ (bodyInit))); // TODO
         return bs;
       });
-    case 2:
-      var bs = body._bs;
-      body._bs = undefined;
-      return Promise.resolve(bs);
-    case 3:
-      var utf8 = body._utf8;
-      body._utf8 = undefined;
+    case BODY_BYTESTRING:
+      return Promise.resolve(/** @type {*} */ (bodyInit));
+    case BODY_UTF8:
       return resolved.then(function () {
-        return encodeByteString(utf8);
+        return utf8encode(/** @type {*} */ (bodyInit));
       });
     default:
   }
@@ -142,26 +121,29 @@ export function $$byteString() {
 
 /**
  * @this {Body}
+ * @returns {Promise<Blob>}
  */
 export function blob() {
-  if (ENABLE_TEXTONLY) throw new TypeError(ERR_BINARY_NOT_SUPPORTED);
   var body = this;
+  if (ENABLE_TEXTONLY) throw new TypeError(ERR_BINARY_NOT_SUPPORTED);
   if (body.bodyUsed)
     return Promise.reject(new TypeError(ERR_BODY_USED));
   body.bodyUsed = true;
+  var bodyInit = body._body;
+  body._body = undefined;
   switch (body._kind) {
-    case 0:
-      return Promise.resolve(body._blob);
-    case 1:
+    case BODY_BLOB:
+      return Promise.resolve(/** @type {*} */ (bodyInit));
+    case BODY_ARRAY_BUFFER:
       return null; // todo
-    case 2:
+    case BODY_BYTESTRING:
       return null; // todo
-    case 3:
+    case BODY_UTF8:
       return null; // todo
   }
 }
 
-/** @param {string} s */
+/** @param s {string} */
 function parseJSON(s) {
   // eslint-disable-next-line es/no-json
   return JSON.parse(s);
@@ -169,6 +151,7 @@ function parseJSON(s) {
 
 /**
  * @this {Body}
+ * @returns {Promise<any>}
  */
 export function json() {
   // @ts-ignore -- TypeScript sees text as a class for some reason

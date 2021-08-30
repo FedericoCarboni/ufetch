@@ -1,14 +1,12 @@
 import { ENABLE_ACTIVE_X } from '../_build_config.js';
 import { Array, objectToString } from './intrinsics.js';
 
-var _location = typeof location !== 'undefined' && location;
-
 export function getBaseURL() {
-  return _location ? location.href : undefined;
+  return typeof location !== 'undefined' ? location.href : undefined;
 }
 
 /** @type {*} */
-export var INTERNAL = {};
+// export var INTERNAL = {};
 
 /** @type {typeof Array.isArray} */ // @ts-ignore
 export var isArray = Array.isArray || function (o) {
@@ -17,10 +15,10 @@ export var isArray = Array.isArray || function (o) {
 
 export var internal = {
   _bodyKind: -1,
+  _headersGuard:
   /**
    * @type {'none' | 'immutable' | 'request' | 'request-no-cors' | 'response'}
-   */ // @ts-ignore -- Pedantic TypeScript
-  _headersGuard: 'none',
+   */ ('none'),
   _responseURL: ''
 };
 
@@ -32,7 +30,4 @@ export var isActiveX = ENABLE_ACTIVE_X &&
 
 var _ActiveXObject = isActiveX && ActiveXObject;
 
-export {
-  _ActiveXObject as ActiveXObject,
-  _location as location,
-};
+export { _ActiveXObject as ActiveXObject };

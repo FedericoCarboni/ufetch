@@ -1,25 +1,19 @@
 /**
- * UTf-8 decoding for `ByteString`s
+ * UTF-8 decoding for `ByteString`s
  */
 
-import { UNICODE_REPLACEMENT, MAX_CALL_STACK_SIZE, MAX_INT_32, ERR_OUT_OF_BOUNDS } from '../_inline.js';
+import { UNICODE_REPLACEMENT, MAX_CALL_STACK_SIZE } from '../_inline.js';
 import { fromCharCode, Array } from './intrinsics.js';
 
 /**
  * UTF-8 decode algorithm for ByteStrings, WHATWG compliant.
  * Uses the Unicode Replacement character on decoding error.
  * @see https://encoding.spec.whatwg.org/#utf-8-decode
- * @param {ByteString} bs
+ * @param bs {ByteString}
+ * @param [withoutBOM] {boolean}
  */
-export function decodeByteString(bs) {
+export function utf8decode(bs, withoutBOM) {
   var length = bs.length;
-
-  // For practical limits ByteStrings cannot be more than 2GB
-  if (length > MAX_INT_32) {
-    throw new TypeError('Byte length' + ERR_OUT_OF_BOUNDS + MAX_INT_32 + ' (2GB)');
-  }
-
-  var index = 0;
 
   // https://encoding.spec.whatwg.org/#utf-8-decoder
   var codePoint = 0;
@@ -27,19 +21,22 @@ export function decodeByteString(bs) {
   var lower = 0x80;
   var upper = 0xbf;
 
+  var index = 0;
+
   // Check for a BOM and ignore it
-  if ((bs.charCodeAt(0) & 0xff) === 0xef &&
+  if (!withoutBOM && length >= 3 &&
+      (bs.charCodeAt(0) & 0xff) === 0xef &&
       (bs.charCodeAt(1) & 0xff) === 0xbb &&
       (bs.charCodeAt(2) & 0xff) === 0xbf) {
     // Skip the first three bytes
     index = 3;
   }
 
-  var s = '';
+  var result = '';
 
   // Process char codes in batches to reduce the number of function calls,
   // max out the allocation size to `MAX_CALL_STACK_SIZE`.
-  var alloc = length;
+  var alloc = length - index;
   if (alloc > MAX_CALL_STACK_SIZE)
     alloc = MAX_CALL_STACK_SIZE;
 
@@ -47,7 +44,7 @@ export function decodeByteString(bs) {
   /** @type {number[]} */
   var charCodes = Array(alloc);
   // Store the number of char codes currently occupied in the Array,
-  // Array.length wouldn't work because the Array is preallocated.
+  // Array.length wouldn't work because the array is preallocated.
   var charCodeN = 0;
 
   for (; index < length; index++) {
@@ -109,7 +106,7 @@ export function decodeByteString(bs) {
     // Dump to result to avoid call stack size exceeded errors.
     if (charCodeN >= MAX_CALL_STACK_SIZE) {
       charCodes.length = charCodeN;
-      s += fromCharCode.apply(undefined, charCodes);
+      result += fromCharCode.apply(undefined, charCodes);
       charCodeN = 0;
     }
   }
@@ -123,17 +120,17 @@ export function decodeByteString(bs) {
   if (charCodeN) {
     // Truncate the array to `nCharCodes`, `slice` would allocate a new array
     charCodes.length = charCodeN;
-    s += fromCharCode.apply(undefined, charCodes);
+    result += fromCharCode.apply(undefined, charCodes);
   }
 
-  return s;
+  return result;
 }
 
 /**
- * @param {string} s
+ * @param s {string}
  * @returns {ByteString}
  */
-export function encodeByteString(s) {
+export function utf8encode(s) {
   var length = s.length;
 
   /** @type {ByteString} */

@@ -1,6 +1,6 @@
 'use strict';
 
-const buf = require('crypto').randomBytes(1024 * 1000 * 6 + 73);
+const buf = require('crypto').randomBytes(1024);
 
 // require('fs').writeFileSync('buf', buf);
 

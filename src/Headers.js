@@ -11,8 +11,8 @@ var CORS_SAFE_REGEX = /[^\x00-\x08\x0a-\x13"():<>?@[\\\]{}\x7f]/;
 var CORS_SAFE_LANG_REGEX = /[0-9A-Za-z *,-.;=]/;
 
 /**
- * @param {string[]} headers
- * @param {number} kind
+ * @param headers {string[]}
+ * @param kind {number}
  * @class
  */
 function Iterator(headers, kind) {
@@ -59,7 +59,7 @@ function toHeaderName(name) {
 }
 
 /**
- * @param {string} value
+ * @param value {string}
  * @returns {ByteString}
  */
 function toHeaderValue(value) {
@@ -72,7 +72,7 @@ function toHeaderValue(value) {
 }
 
 /**
- * @param {ByteString} name
+ * @param name {ByteString}
  */
 function isForbiddenHeaderName(name) {
   return name.startsWith('proxy-') || name.startsWith('sec-') ||
@@ -106,8 +106,8 @@ function isResponseForbiddenHeaderName(name) {
 }
 
 /**
- * @param {ByteString} name
- * @param {ByteString} value
+ * @param name {ByteString}
+ * @param value {ByteString}
  * @returns {boolean}
  */
 function isNoCORSSafelistedRequestHeader(name, value) {
@@ -127,9 +127,9 @@ function isNoCORSSafelistedRequestHeader(name, value) {
 }
 
 /**
- * @param {Headers} headers
- * @param {string} name
- * @param {string} value
+ * @param headers {Headers}
+ * @param name {string}
+ * @param value {string}
  */
 function append(headers, name, value) {
   var n = toHeaderName(name);
@@ -156,7 +156,7 @@ function append(headers, name, value) {
 }
 
 /**
- * @param {HeadersInit} [init]
+ * @param [init] {HeadersInit}
  * @class
  */
 export function Headers(init) {

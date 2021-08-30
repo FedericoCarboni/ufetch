@@ -93,6 +93,32 @@ const config = [
       }),
     ],
   },
+  {
+    input: ['src/internal/url/URL.js'],
+    output: [
+      {
+        dir: 'dist',
+        format: 'umd',
+        // minifyInternalExports: false,
+        chunkFileNames: '[name].js',
+        name: 'url',
+      }
+    ],
+    plugins: [
+      {
+        name: 'url',
+        transform,
+      },
+      // terserPlugin,
+      // replace({
+      //   values: {
+      //     'VBARRAY_SCRIPT': JSON.stringify(vbarray),
+      //   },
+      //   delimiters: ['', ''],
+      //   preventAssignment: true,
+      // }),
+    ],
+  },
 ];
 
 export default config;

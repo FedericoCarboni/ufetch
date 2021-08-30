@@ -5,7 +5,7 @@ import { internal, isActiveX } from './util.js';
 
 /**
  *
- * @param {ByteString} bs
+ * @param bs {ByteString}
  */
 export function parseHeaders(bs) {
   internal._headersGuard = 'response';
@@ -43,8 +43,8 @@ export function parseHeaders(bs) {
               state = HEADERS_STATE_NAME;
             }
             break;
-          case 32 /*   */:
-          case 9 /* \t */:
+          case 32 /* SP */:
+          case 9 /* TAB */:
             if (start > lastNonSpace) {
               start = i + 1;
             }
@@ -59,14 +59,14 @@ export function parseHeaders(bs) {
   return headers;
 }
 
-/** @param {string} s */
+/** @param s {string} */
 function toUpperCase(s) {
   return s.toUpperCase();
 }
 
 var PROPERCASE_REGEX = /-[a-z]/g;
 
-/** @param {string} name */
+/** @param name {string} */
 function toProperCase(name) {
   return name.charAt(0).toUpperCase() + name.slice(1)
     .replace(PROPERCASE_REGEX, toUpperCase);
@@ -74,8 +74,8 @@ function toProperCase(name) {
 
 /**
  * @this {XMLHttpRequest}
- * @param {string} value
- * @param {string} name
+ * @param value {string}
+ * @param name {string}
  */
 export function setRequestHeader(value, name) {
   // Old versions of IE have issues with all lowercase headers

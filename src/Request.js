@@ -1,6 +1,6 @@
 import { ENABLE_NON_STANDARD, ENABLE_NO_CACHE, ENABLE_TEXTONLY } from './_build_config.js';
-import { $$byteString, arrayBuffer, blob, extractBody, json, text } from './internal/Body.js';
-import { internal } from './internal/util.js';
+import { $$binaryString, arrayBuffer, blob, json, text } from './internal/Body.js';
+import { getBaseURL, internal } from './internal/util.js';
 import { Headers } from './Headers.js';
 import { String } from './internal/intrinsics.js';
 import { ERR_NO_NEW1, ERR_NO_NEW2 } from './_inline.js';
@@ -19,11 +19,8 @@ function Request(input, init) {
     throw new TypeError(ERR_NO_NEW1 + 'Request' + ERR_NO_NEW2);
 
   request.bodyUsed = false;
-  request._kind =
-  request._blob =
-  request._arrayBuffer =
-  request._bs =
-  request._utf8 = undefined;
+  request._kind = internal._bodyKind;
+  request._body = undefined;
 
   // var baseURL = getBaseURL();
 
@@ -39,11 +36,10 @@ function Request(input, init) {
     request.credentials = input.credentials;
   } else {
     var url = String(input);
-    // var parsedURL = new URL(url, baseURL);
-    // if (parsedURL.username || parsedURL.password)
-    //   throw new TypeError();
-    // @ts-ignore
-    request.url = url;
+    var parsedURL = new URL(url, getBaseURL());
+    if (parsedURL.username || parsedURL.password)
+      throw new TypeError();
+    request.url = parsedURL.href;
   }
 
   if (init && 'method' in init)
@@ -60,12 +56,11 @@ function Request(input, init) {
   if (body !== null && body !== undefined) {
     if (request.method === 'GET' || request.method === 'HEAD')
       throw new TypeError();
-    var contentType = extractBody(request, body, internal._bodyKind);
-    if (contentType !== null && !request.headers.has('Content-Type')) {
-      request.headers.append('Content-Type', contentType);
-    }
+    // var contentType = extractBody(request, body, internal._bodyKind);
+    // if (contentType !== null && !request.headers.has('Content-Type')) {
+    //   request.headers.append('Content-Type', contentType);
+    // }
   }
-
   if (ENABLE_NO_CACHE && (request.method === 'GET' || request.method === 'HEAD')) {
     if (init && init.cache === 'no-store') {
       request.url += (/[?]/.test(request.url) ? '&' : '?') +
@@ -83,7 +78,7 @@ Request.prototype.bodyUsed = false;
 if (!ENABLE_TEXTONLY) {
   if (ENABLE_NON_STANDARD)
     /** @type {() => Promise<ByteString>} */
-    Request.prototype.$$byteString = $$byteString;
+    Request.prototype.$$binaryString = $$binaryString;
   /** @type {() => Promise<ArrayBuffer>} */
   Request.prototype.arrayBuffer = arrayBuffer;
   /** @type {() => Promise<Blob>} */

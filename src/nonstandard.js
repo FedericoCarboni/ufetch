@@ -1,7 +1,6 @@
-import { $$byteString } from './internal/Body.js';
+import { $$binaryString } from './internal/Body.js';
 
 /** @param {import('./internal/Body.js').Body} body */
-export function bodyAsBinaryString(body) {
-  // @ts-ignore
-  return $$byteString.call(body);
+export function asBinaryString(body) { // @ts-ignore
+  return $$binaryString.call(body);
 }

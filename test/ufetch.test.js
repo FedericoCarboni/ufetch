@@ -1,11 +1,13 @@
 import { fetch } from '../src/ufetch.js';
 
 describe('ufetch', function () {
+  this.timeout(60000);
   it('should work', function (done) {
-    // @ts-ignore
-    fetch('/testapi/echo').then(function (response) {
-      return response.$$byteString().then(function (bs) {
-        console.log(bs.length);
+    fetch('/rand').then(function (response) {
+      console.log(response);
+      return response.$$binaryString().then(function (bs) {
+        // @ts-ignore
+        // console.log(bs);
         done();
       });
     })['catch'](function (err) {

@@ -36,11 +36,11 @@ const config = {
     'eqeqeq': 'error',      // Ban == and !=
     'no-eval': 'error',     // Ban eval()
     'no-new-func': 'error', // Ban Function()
-
-    // 'no-restricted-syntax': ['error', {
-    //   selector: 'BinaryExpression[operator="%"]',
-    //   message: 'Use bitwise operations instead of %'
-    // }],
+    'no-redeclare': 'error',
+    'no-restricted-syntax': ['error', {
+      selector: 'TryStatement',
+      message: 'try is slow'
+    }],
     'operator-linebreak': ['error'],
     'no-unused-vars': ['error', {
       varsIgnorePattern: '^_',
@@ -77,7 +77,7 @@ const config = {
       'exports', 'Exports',
       'require', 'Require',
       'module', 'Module',
-      'eval', 'arguments',
+      'eval',
     ],
     'one-var': ['error', 'never'],
     'es/no-promise': 'off',
